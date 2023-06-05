@@ -64,6 +64,7 @@ class AdaBoost(BaseEstimator, ClassifierMixin):
 
     def score(self, X: np.ndarray, y: np.ndarray) -> float:
         check_is_fitted(self)
+        y = y.reshape((-1, 1))
         X = check_array(X)
         y = check_array(y)
         y_pred = self.predict(X)
