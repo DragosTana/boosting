@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import tqdm
+import time
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import AdaBoostClassifier, GradientBoostingClassifier, GradientBoostingRegressor
 from sklearn.metrics import accuracy_score
@@ -90,20 +91,33 @@ def interactionTest():
 def compareGB():
     
     score_my, score_sk = [], []
+    time_my, time_sk = [], []
     for i in tqdm.tqdm(range(20)):
-        X, Y = datasets.make_regression(n_samples=1000, n_features=10, n_informative=6, noise=5)
+        #X, Y = datasets.make_regression(n_samples=1000, n_features=10, n_informative=6, noise=5)
+        X, Y = ms.SimulatedDataInteraction(n = 5000, interaction = 3, noise = 5)
         x_train, x_test, y_train, y_test = train_test_split(X, Y, test_size=0.2)
         
         my_gb = gb.GradientBoostingRegressor(n_estimators=100, learning_rate=0.1, max_depth=3, loss='ls', verbose = False)
         sk_gb = GradientBoostingRegressor(n_estimators=100, learning_rate=0.1, max_depth=3, loss='squared_error', verbose = False)
         
+        start_time = time.time()
         my_gb.fit(x_train, y_train)
+        end_time = time.time()
+        time_my.append(end_time - start_time)
+        
+        start_time = time.time()
         sk_gb.fit(x_train, y_train)
+        end_time = time.time()
+        time_sk.append(end_time - start_time)
+        
+        
         score_my.append(my_gb.score(x_test, y_test))
         score_sk.append(sk_gb.score(x_test, y_test))
         
     print("My GB: ", np.mean(score_my))
     print("Sklearn GB: ", np.mean(score_sk))
+    print("My GB time: ", np.mean(time_my))
+    print("Sklearn GB time: ", np.mean(time_sk))
     
 compareGB()
         
