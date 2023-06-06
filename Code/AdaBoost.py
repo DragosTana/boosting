@@ -31,7 +31,6 @@ class AdaBoost(BaseEstimator, ClassifierMixin):
         X, y = check_X_y(X, y)
         sample_weights = np.ones(len(X)) / len(X)
         
-
         iterator = range(self.n_estimators)
         if self.verbose:
             iterator = tqdm.tqdm(iterator)

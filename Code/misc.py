@@ -1,6 +1,6 @@
 import numpy as np
 
-def simulatedData1(n = 10, seed = 1):
+def simulatedData1(n = 10, seed = None):
     """
     This function simulates the data foloowing the example 3.10 of the Elements of Statistical Learning in the Boosting section.
     """
@@ -11,7 +11,16 @@ def simulatedData1(n = 10, seed = 1):
     Y = Y.astype(int)
     return X, Y
 
-def SimulatedDataInteraction(n = 1000, seed = 1, noise = 1, interaction = 2):
+def simulatedData2(n = 100, seed = None, noise = 1):
+    X = np.random.uniform(0, 15, n)
+    X = np.sort(X)
+    Y = [7 * np.sin(2*x) * np.exp(-0.1*x) + noise * np.random.normal(0, 1) for x in X]
+    Y_true = [7 * np.sin(2*x) * np.exp(-0.1*x) for x in X]
+    
+    return X, Y, Y_true
+    
+
+def simulatedDataInteraction(n = 1000, seed = None, noise = 1, interaction = 2):
     """
     This function generates a simulated dataset with interaction terms for regression.
     """
@@ -28,6 +37,8 @@ def SimulatedDataInteraction(n = 1000, seed = 1, noise = 1, interaction = 2):
     X = np.array(X)
     Y = np.array(Y)
     return X, Y
+
+
     
 if __name__ == "__main__":
     X, Y = SimulatedDataInteraction(n = 10)

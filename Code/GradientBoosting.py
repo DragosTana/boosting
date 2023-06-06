@@ -39,6 +39,7 @@ class GradientBoostingRegressor(BaseEstimator, RegressorMixin):
     def fit(self, X, y):
         self.estimators = []
         self.init_prediction = np.mean(y)
+        #self.prediction = self.init_prediction * np.ones(len(X))
         
         iterator = range(self.n_estimators)
         if self.verbose:
@@ -48,16 +49,15 @@ class GradientBoostingRegressor(BaseEstimator, RegressorMixin):
             residuals = self._compute_residuals(y, self.predict(X))
             estimator = DecisionTreeRegressor(max_depth=self.max_depth)
             estimator.fit(X, residuals)
-            
             self.estimators.append(estimator)
-            #self.init_prediction += self.learning_rate * estimator.predict(X)
+            #self.prediction += self.learning_rate * estimator.predict(X)
         
         return self
 
     def predict(self, X):
         prediction = self.init_prediction * np.ones(len(X))
         for estimator in self.estimators:
-            prediction += self.learning_rate * estimator.predict(X)
+            prediction += self.learning_rate * estimator.predict(X) 
         
         return prediction
 
