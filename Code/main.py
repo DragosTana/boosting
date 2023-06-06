@@ -2,17 +2,15 @@ import matplotlib.pyplot as plt
 import numpy as np
 import tqdm
 from sklearn.tree import DecisionTreeClassifier
-from sklearn.ensemble import AdaBoostClassifier
+from sklearn.ensemble import AdaBoostClassifier, GradientBoostingClassifier, GradientBoostingRegressor
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 from sklearn import datasets
 
 import AdaBoost as ab
+import GradientBoosting as gb
 import misc as ms
 
-
-    
-    
     
 def main():
     np.random.seed(42)
@@ -25,7 +23,7 @@ def main():
     test_error = []
     trainig_error = []
     n = 10
-
+    
     tree = DecisionTreeClassifier(max_depth=1)
     tree.fit(x_train, y_train)
     print("Decision tree error: ", 1 - accuracy_score(y_test, tree.predict(x_test)))
@@ -41,9 +39,12 @@ def main():
     print("estimator weights: ", weights)
     print("estimator errors: ", errors)
         
-    
-    
-    
+    for i in range(1, n):
+
+
+        y_pred = np.sign(y_pred)
+
+        
     #for i in tqdm.tqdm(range(1, n)):
     #    tree = DecisionTreeClassifier(max_depth=1)
     #    ada = AdaBoostClassifier(n_estimators=i, learning_rate=1.0, estimator=tree)
@@ -55,6 +56,60 @@ def main():
     #plt.plot(range(1, n), trainig_error, label="Training Error")
     #plt.legend()
     #plt.show()
-main()
+
+def interactionTest():
+
+    score, score1, score2 = [], [], []
+        
+    for i in range(20):
+        X, Y = ms.SimulatedDataInteraction(n = 1000, interaction = 2)
+        
+        
+        gb1 = GradientBoostingRegressor(n_estimators=100, learning_rate=0.1, max_depth=2, loss='squared_error', verbose = False)
+        gb2 = GradientBoostingRegressor(n_estimators=100, learning_rate=0.1, max_depth=3, loss='squared_error', verbose = False)
+
+        x_train, x_test, y_train, y_test = train_test_split(X, Y, test_size=0.2)
+
+        gb1.fit(x_train, y_train)
+        gb2.fit(x_train, y_train)
+
+        score1.append(gb1.score(x_test, y_test))
+        score2.append(gb2.score(x_test, y_test))
+        
+        X, Y = ms.SimulatedDataInteraction(n = 1000, interaction = None)
+        gb = GradientBoostingRegressor(n_estimators=100, learning_rate=0.1, max_depth=3, loss='squared_error', verbose = False)
+        x_train, x_test, y_train, y_test = train_test_split(X, Y, test_size=0.2)
+        gb.fit(x_train, y_train)
+        score.append(gb.score(x_test, y_test))
+        
+    print("Score: ", np.mean(score))
+    print("Score 1: ", np.mean(score1))
+    print("Score 2: ", np.mean(score2))
+
+
+def compareGB():
+    
+    score_my, score_sk = [], []
+    for i in tqdm.tqdm(range(20)):
+        X, Y = datasets.make_regression(n_samples=1000, n_features=10, n_informative=6, noise=5)
+        x_train, x_test, y_train, y_test = train_test_split(X, Y, test_size=0.2)
+        
+        my_gb = gb.GradientBoostingRegressor(n_estimators=100, learning_rate=0.1, max_depth=3, loss='ls', verbose = False)
+        sk_gb = GradientBoostingRegressor(n_estimators=100, learning_rate=0.1, max_depth=3, loss='squared_error', verbose = False)
+        
+        my_gb.fit(x_train, y_train)
+        sk_gb.fit(x_train, y_train)
+        score_my.append(my_gb.score(x_test, y_test))
+        score_sk.append(sk_gb.score(x_test, y_test))
+        
+    print("My GB: ", np.mean(score_my))
+    print("Sklearn GB: ", np.mean(score_sk))
+    
+compareGB()
+        
+    
+    
+
+
     
     
