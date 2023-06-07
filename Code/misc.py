@@ -41,6 +41,6 @@ def simulatedDataInteraction(n = 1000, seed = None, noise = 1, interaction = 2):
 
     
 if __name__ == "__main__":
-    X, Y = SimulatedDataInteraction(n = 10)
+    X, Y = simulatedDataInteraction(n = 10)
     print(X)
     print(Y)

@@ -1,13 +1,14 @@
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import AdaBoostClassifier, GradientBoostingClassifier, GradientBoostingRegressor, RandomForestClassifier, RandomForestRegressor
+from sklearn.metrics import accuracy_score
+from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn import datasets
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import tqdm
 import time
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.ensemble import AdaBoostClassifier, GradientBoostingClassifier, GradientBoostingRegressor
-from sklearn.metrics import accuracy_score
-from sklearn.model_selection import train_test_split
-from sklearn import datasets
 
 import AdaBoost as ab
 import GradientBoosting as gb
@@ -61,7 +62,10 @@ def main():
     #plt.show()
 
 def interactionTest():
-
+    """
+    Function to test the effect of the deapth of the trees on the performance of the Gradient Boosting algorithm in 
+    the case of interaction terms.
+    """
     score, score1, score2 = [], [], []
         
     for i in range(20):
@@ -91,7 +95,9 @@ def interactionTest():
 
 
 def compareGB():
-    #NOTE: does my implementation performs better than the one from sklearn?
+    """
+    Function to compare my implementation of the Gradient Boosting algorithm with the one from sklearn.
+    """
     n_samples = [100, 500, 1000, 5000, 10000]
     
     score_my, score_sk = [], []
@@ -137,7 +143,10 @@ def compareGB():
     plt.legend()
     plt.show()
     
-def visualization():
+def learningVisualization():
+    """
+    Function to visualize the learning process of the Gradient Boosting algorithm.
+    """
     estimators = 200
     size = 500
     X, Y, Y_true = ms.simulatedData2(n = size, seed = None, noise=2)
@@ -160,7 +169,7 @@ def visualization():
     training_error = []
     test_error = []
     
-    plt.pause(10)
+    plt.pause(5)
     for i in range(1, estimators):
         np.random.seed(1)
         mygb = GradientBoostingRegressor(n_estimators=i, learning_rate=0.1, max_depth=3, loss='squared_error', verbose = False)
@@ -174,7 +183,7 @@ def visualization():
         ax[1].legend()
         ax[0].legend()
         
-        plt.pause(0.1)
+        plt.pause(0.5)
         for l in line:
             l.remove()
         for t in test:
@@ -182,10 +191,52 @@ def visualization():
         for t in train:
             t.remove()
             
-   
     plt.show()
     
-visualization()
+    
+def learningVisualization2():
+    """
+    Function to visualize the learning process of the Gradient Boosting algorithm.
+    """
+    estimators = 200
+    size = 1000
+    X, Y, Y_true = ms.simulatedData2(n = size, seed = None, noise=1)
+    X = np.array(X)
+    Y = np.array(Y)
+    X = X.reshape((size, 1))
+    Y = Y.reshape((size, 1))
+    
+    x_train, x_test, y_train, y_test = train_test_split(X, Y, test_size=0.2)
+    
+    values = np.linspace(0, 15, 1000)
+    values = values.reshape((1000, 1))
+    print(values)
+    fig, ax = plt.subplots(1, 1, figsize=(10, 5))
+    ax.plot(X, Y_true, label="True function")
+    ax.plot(x_train, y_train, '.', label="Training Data", alpha=0.5)
+
+    
+    training_error = []
+    test_error = []
+    
+    plt.pause(5)
+    for i in range(1, estimators):
+        np.random.seed(1)
+
+        mygb = GradientBoostingRegressor(n_estimators=i, learning_rate=0.1, max_depth=3, loss='squared_error', verbose = False)
+        mygb.fit(x_train, y_train)
+
+        
+        line = ax.plot(values, mygb.predict(values), color='r', label="Prediction")
+
+        ax.legend()
+        plt.pause(0.3)
+        for l in line:
+            l.remove()
+            
+    plt.show()
+    
+learningVisualization2()
         
         
     
