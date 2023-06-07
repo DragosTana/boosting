@@ -3,6 +3,7 @@ from sklearn.ensemble import AdaBoostClassifier, GradientBoostingClassifier, Gra
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn import datasets
+from scipy.optimize import minimize_scalar
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -66,34 +67,34 @@ def interactionTest():
     Function to test the effect of the deapth of the trees on the performance of the Gradient Boosting algorithm in 
     the case of interaction terms.
     """
-    score, score1, score2 = [], [], []
-        
-    for i in range(20):
-        X, Y = ms.SimulatedDataInteraction(n = 1000, interaction = 2)
-        
-        
-        gb1 = GradientBoostingRegressor(n_estimators=100, learning_rate=0.1, max_depth=2, loss='squared_error', verbose = False)
-        gb2 = GradientBoostingRegressor(n_estimators=100, learning_rate=0.1, max_depth=3, loss='squared_error', verbose = False)
-
+   
+    sim = 100
+    score2, score3, score4 = [], [], []
+   
+    for _ in tqdm.tqdm(range(sim)):
+        X, Y = ms.simulatedDataInteraction(n = 1000, interaction = 4, noise = 5)
         x_train, x_test, y_train, y_test = train_test_split(X, Y, test_size=0.2)
-
-        gb1.fit(x_train, y_train)
-        gb2.fit(x_train, y_train)
-
-        score1.append(gb1.score(x_test, y_test))
-        score2.append(gb2.score(x_test, y_test))
         
-        X, Y = ms.SimulatedDataInteraction(n = 1000, interaction = None)
-        gb = GradientBoostingRegressor(n_estimators=100, learning_rate=0.1, max_depth=3, loss='squared_error', verbose = False)
-        x_train, x_test, y_train, y_test = train_test_split(X, Y, test_size=0.2)
-        gb.fit(x_train, y_train)
-        score.append(gb.score(x_test, y_test))
+        gb2_grid = GridSearchCV(estimator=gb.GradientBoostingRegressor(max_depth=2), param_grid={'learning_rate': np.arange(0.001, 0.1, 0.01), "n_estimators": range(10, 200, 5)}, cv=5, n_jobs=-1)
+        #gb3_grid = GridSearchCV(estimator=gb.GradientBoostingRegressor(max_depth=3), param_grid={'learning_rate': np.arange(0.001, 0.1, 0.01), "n_estimators": range(10, 200, 5)}, cv=5, n_jobs=-1)
+        gb4_grid = GridSearchCV(estimator=gb.GradientBoostingRegressor(max_depth=4), param_grid={'learning_rate': np.arange(0.001, 0.1, 0.01), "n_estimators": range(10, 200, 5)}, cv=5, n_jobs=-1)
         
-    print("Score: ", np.mean(score))
-    print("Score 1: ", np.mean(score1))
+        gb2_grid.fit(x_train, y_train)
+        #gb3_grid.fit(x_train, y_train)
+        gb4_grid.fit(x_train, y_train)
+        
+        gb2_grid.best_estimator_.fit(x_train, y_train)
+        #gb3_grid.best_estimator_.fit(x_train, y_train)
+        gb4_grid.best_estimator_.fit(x_train, y_train)
+        
+        score2.append(gb2_grid.best_estimator_.score(x_test, y_test))
+        #score3.append(gb3_grid.best_estimator_.score(x_test, y_test))
+        score4.append(gb4_grid.best_estimator_.score(x_test, y_test))
+        
     print("Score 2: ", np.mean(score2))
-
-
+    #print("Score 3: ", np.mean(score3))
+    print("Score 4: ", np.mean(score4))
+              
 def compareGB():
     """
     Function to compare my implementation of the Gradient Boosting algorithm with the one from sklearn.
@@ -192,8 +193,7 @@ def learningVisualization():
             t.remove()
             
     plt.show()
-    
-    
+       
 def learningVisualization2():
     """
     Function to visualize the learning process of the Gradient Boosting algorithm.
@@ -214,10 +214,6 @@ def learningVisualization2():
     fig, ax = plt.subplots(1, 1, figsize=(10, 5))
     ax.plot(X, Y_true, label="True function")
     ax.plot(x_train, y_train, '.', label="Training Data", alpha=0.5)
-
-    
-    training_error = []
-    test_error = []
     
     plt.pause(5)
     for i in range(1, estimators):
@@ -226,7 +222,6 @@ def learningVisualization2():
         mygb = GradientBoostingRegressor(n_estimators=i, learning_rate=0.1, max_depth=3, loss='squared_error', verbose = False)
         mygb.fit(x_train, y_train)
 
-        
         line = ax.plot(values, mygb.predict(values), color='r', label="Prediction")
 
         ax.legend()
@@ -236,7 +231,7 @@ def learningVisualization2():
             
     plt.show()
     
-learningVisualization2()
+interactionTest()
         
         
     
