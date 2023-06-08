@@ -94,6 +94,37 @@ def interactionTest():
     print("Score 2: ", np.mean(score2))
     #print("Score 3: ", np.mean(score3))
     print("Score 4: ", np.mean(score4))
+    
+def Test1():
+    """
+    To test the hypothesis that the Gradient Boosting algorithm performs with higher max_depth
+    fixing all the other parameters.
+    """
+    
+    sim = 30
+    score1, score2, score3 = [], [], []
+    
+    for _ in tqdm.tqdm(range(sim)):
+        #X, Y = ms.simulatedDataInteraction(n = 1000, interaction = 4, noise = 5)
+        X, Y = datasets.make_regression(n_samples = 1000, n_features=10, n_informative = 6, noise=5)
+        x_train, x_test, y_train, y_test = train_test_split(X, Y, test_size=0.2)
+        
+        gb1 = GradientBoostingRegressor(max_depth=1)
+        gb2 = GradientBoostingRegressor(max_depth=2)
+        gb3 = GradientBoostingRegressor(max_depth=3)
+        
+        gb1.fit(x_train, y_train)
+        gb2.fit(x_train, y_train)
+        gb3.fit(x_train, y_train)
+        
+        score1.append(gb1.score(x_test, y_test))
+        score2.append(gb2.score(x_test, y_test))
+        score3.append(gb3.score(x_test, y_test))
+        
+    print("Score 1: ", np.mean(score1))
+    print("Score 2: ", np.mean(score2))
+    print("Score 3: ", np.mean(score3))
+        
               
 def compareGB():
     """
@@ -134,15 +165,19 @@ def compareGB():
         time_my.append(np.mean(tmp_t_my))
         time_sk.append(np.mean(tmp_t_sk))
         
-    plt.plot(n_samples, score_my, label="My implementation")
-    plt.plot(n_samples, score_sk, label="Sklearn implementation")
+    plt.plot(n_samples, score_my, label="My implementation", linewidth=3)
+    plt.plot(n_samples, score_sk, label="Sklearn implementation", linewidth=3)
+    plt.ylabel("R2 score")
+    plt.xlabel("Number of samples")
     plt.legend()
     plt.show()
     
-    plt.plot(n_samples, time_my, label="My implementation")
-    plt.plot(n_samples, time_sk, label="Sklearn implementation")
+    plt.plot(n_samples, time_my, label="My implementation", linewidth=3)
+    plt.plot(n_samples, time_sk, label="Sklearn implementation", linewidth=3)
+    plt.ylabel("Time in seconds")
+    plt.xlabel("Number of samples")
     plt.legend()
-    plt.show()
+    plt.show() 
     
 def learningVisualization():
     """
@@ -231,9 +266,47 @@ def learningVisualization2():
             
     plt.show()
     
-interactionTest()
+
+def compareLoss():
+    """
+    Function to compare the difference between the different loss functions
+    when dealing with outliers.
+    """
+    size = 500
+    x, y, Y_true = ms.simulatedData3(n = size, seed = None, noise=5)
+    fig, ax = plt.subplots(1, 1, figsize=(10, 5))
+    ax.plot(x, Y_true, label="True function")
+    ax.plot(x, y, '.', label="Training Data", alpha=0.5)
+    ax.plot([0, -7.5, 7.5], [40, 20, 20], "o", color = "r", label="Outlier")
+    ax.legend()
+    
+    X = np.append(x, [0, -7.5, 7.5])
+    Y = np.append(y, [40, 20, 20])
+    
+    values = np.linspace(-10, 10, 1000)
+    
+    X = X.reshape((size + 3, 1))
+    Y = Y.reshape((size + 3, 1))
+    values = values.reshape((1000, 1))
+    
+    #plt.pause(5)
+    for i in tqdm.tqdm(range(1, 200)):
+        np.random.seed(1)
         
+        #change the loss function here to see the effect
+        mygb = GradientBoostingRegressor(n_estimators=i, learning_rate=0.1, max_depth=3, loss='huber', verbose = False)
+        mygb.fit(X, Y)
         
+        line = ax.plot(values, mygb.predict(values), color='r', label="Prediction")
+        plt.pause(0.01)
+        for l in line:
+            l.remove()
+    
+    line = ax.plot(values, mygb.predict(values), color='r', label="Prediction")
+    plt.show()
+    
+    
+compareLoss()   
     
     
 

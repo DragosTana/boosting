@@ -19,7 +19,21 @@ def simulatedData2(n = 100, seed = None, noise = 1):
     
     return X, Y, Y_true
     
-
+def simulatedData3(n = 100, seed = None, noise = 1):
+    """
+    Simulated data that follow parabolic function
+    adding an outlier.
+    """
+    
+    X = np.random.uniform(-10, 10, n)
+    X = np.sort(X)
+    Y = [pow(x, 2) + noise * np.random.normal(0, 1) for x in X]
+    Y_true = [pow(x, 2) for x in X]
+    
+    return X, Y, Y_true
+    
+    
+    
 def simulatedDataInteraction(n = 1000, seed = None, noise = 1, interaction = 2):
     """
     This function generates a simulated dataset with interaction terms for regression.

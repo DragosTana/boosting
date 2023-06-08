@@ -75,6 +75,10 @@ class GradientBoostingRegressor(BaseEstimator, RegressorMixin):
             return residuals
         else:
             raise ValueError("Invalid loss function. Choose 'ls', 'lad', or 'huber'.")
+        
+import numpy as np
+from sklearn.tree import DecisionTreeRegressor
+from scipy.optimize import minimize
 
 
 class GradientBoostingClassifier(BaseEstimator, ClassifierMixin):
