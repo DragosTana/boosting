@@ -12,6 +12,10 @@ def simulatedData1(n = 10, seed = None):
     return X, Y
 
 def simulatedData2(n = 100, seed = None, noise = 1):
+    """
+    This function generates a simulated dataset for regression
+    using the function 7 * sin(2x) * exp(-0.1x) + noise. (dumped sine wave)
+    """
     X = np.random.uniform(0, 15, n)
     X = np.sort(X)
     Y = [7 * np.sin(2*x) * np.exp(-0.1*x) + noise * np.random.normal(0, 1) for x in X]
@@ -32,8 +36,6 @@ def simulatedData3(n = 100, seed = None, noise = 1):
     
     return X, Y, Y_true
     
-    
-    
 def simulatedDataInteraction(n = 1000, seed = None, noise = 1, interaction = 2):
     """
     This function generates a simulated dataset with interaction terms for regression.
@@ -52,8 +54,6 @@ def simulatedDataInteraction(n = 1000, seed = None, noise = 1, interaction = 2):
     Y = np.array(Y)
     return X, Y
 
-
-    
 if __name__ == "__main__":
     X, Y = simulatedDataInteraction(n = 10)
     print(X)

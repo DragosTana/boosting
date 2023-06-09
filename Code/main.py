@@ -101,8 +101,8 @@ def Test1():
     fixing all the other parameters.
     """
     
-    sim = 30
-    score1, score2, score3 = [], [], []
+    sim = 100
+    score1, score2, score3, score4, score5 = [], [], [], [], []
     
     for _ in tqdm.tqdm(range(sim)):
         #X, Y = ms.simulatedDataInteraction(n = 1000, interaction = 4, noise = 5)
@@ -112,20 +112,48 @@ def Test1():
         gb1 = GradientBoostingRegressor(max_depth=1)
         gb2 = GradientBoostingRegressor(max_depth=2)
         gb3 = GradientBoostingRegressor(max_depth=3)
+        gb4 = GradientBoostingRegressor(max_depth=4)
+        gb5 = GradientBoostingRegressor(max_depth=5)
         
         gb1.fit(x_train, y_train)
         gb2.fit(x_train, y_train)
         gb3.fit(x_train, y_train)
+        gb4.fit(x_train, y_train)
+        gb5.fit(x_train, y_train)
         
         score1.append(gb1.score(x_test, y_test))
         score2.append(gb2.score(x_test, y_test))
         score3.append(gb3.score(x_test, y_test))
+        score4.append(gb4.score(x_test, y_test))
+        score5.append(gb5.score(x_test, y_test))
         
-    print("Score 1: ", np.mean(score1))
-    print("Score 2: ", np.mean(score2))
-    print("Score 3: ", np.mean(score3))
+    print("Test score with max tree depth 1: ", np.mean(score1))
+    print("Test score with max tree depth 2: ", np.mean(score2))
+    print("Test score with max tree depth 3: ", np.mean(score3))
+    print("Test score with max tree depth 4: ", np.mean(score4))
+    print("Test score with max tree depth 5: ", np.mean(score5))
+    
+def MSEandNumberofTrees():
+    trees = 401
+    
+    mse_train, mse_test = [], []
+    for i in tqdm.tqdm(range(1, trees)):
+        np.random.seed(44)
+        X, Y = datasets.make_regression(n_samples = 1000, n_features=10, n_informative = 6, noise=90)
+        x_train, x_test, y_train, y_test = train_test_split(X, Y, test_size=0.2, random_state=42)
         
-              
+        gb_model = GradientBoostingRegressor(n_estimators=i, learning_rate=0.1, max_depth=3, loss='squared_error', verbose = False, random_state=42)
+        gb_model.fit(x_train, y_train)
+        
+        mse_train.append(np.sqrt(np.mean((gb_model.predict(x_train) - y_train) ** 2)))
+        mse_test.append(np.sqrt(np.mean((gb_model.predict(x_test) - y_test) ** 2)))
+        
+    fig, ax = plt.subplots(1, 1, figsize=(10, 5))
+    ax.plot(range(1, trees), mse_train, label="Training RMSE", linewidth=3)
+    ax.plot(range(1, trees), mse_test, label="Test RMSE", linewidth=3)
+    ax.legend()
+    plt.show()
+                
 def compareGB():
     """
     Function to compare my implementation of the Gradient Boosting algorithm with the one from sklearn.
@@ -266,7 +294,6 @@ def learningVisualization2():
             
     plt.show()
     
-
 def compareLoss():
     """
     Function to compare the difference between the different loss functions
@@ -293,7 +320,7 @@ def compareLoss():
     for i in tqdm.tqdm(range(1, 200)):
         np.random.seed(1)
         
-        #change the loss function here to see the effect
+        #NOTE: change the loss function here to test the different ones
         mygb = GradientBoostingRegressor(n_estimators=i, learning_rate=0.1, max_depth=3, loss='huber', verbose = False)
         mygb.fit(X, Y)
         
@@ -306,9 +333,46 @@ def compareLoss():
     plt.show()
     
     
-compareLoss()   
+def shrikageTest():
+    """
+    Function to test the effect of the shrinkage parameter on the performance of the Gradient Boosting algorithm
+    and the trade-off between the number of trees and the shrinkage parameter.
+    """
+    trees = 1001
+    shrink_error, no_shrink_error = [], []
+    
+    for i in tqdm.tqdm(range(1, trees)):
+        np.random.seed(44)
+        #X, Y = datasets.make_regression(n_samples = 1000, n_features=10, n_informative = 6, noise=80)
+        X, Y = ms.simulatedData1(n = 1000, seed=44)
+        x_train, x_test, y_train, y_test = train_test_split(X, Y, test_size=0.2, random_state=42)
+        y_train = y_train.flatten()
+        y_test = y_test.flatten()
+        
+        gb_yes = GradientBoostingClassifier(n_estimators=i, learning_rate=0.1, max_depth=3, loss='exponential', verbose = False)
+        gb_no = GradientBoostingClassifier(n_estimators=i, learning_rate=1, max_depth=3, loss='exponential', verbose = False)
+        
+        gb_yes.fit(x_train, y_train)
+        gb_no.fit(x_train, y_train)
+        
+        #shrink_error.append(np.sqrt(np.mean((gb_yes.predict(x_test) - y_test) ** 2)))
+        #no_shrink_error.append(np.sqrt(np.mean((gb_no.predict(x_test) - y_test) ** 2)))
+        
+        shrink_error.append(1 - gb_yes.score(x_test, y_test))
+        no_shrink_error.append(1 - gb_no.score(x_test, y_test))
+        
+        
+    fig, ax = plt.subplots(1, 1, figsize=(10, 5))
+    ax.plot(range(1, trees), shrink_error, label="Shrinkage at 0.1", linewidth=3)
+    ax.plot(range(1, trees), no_shrink_error, label="No shrinkage", linewidth=3)
+    ax.set_xlabel("Boosting Iterations")
+    ax.set_ylabel("Test Error")
+    ax.legend()
+    
+    plt.show()
     
     
+shrikageTest()
 
 
     
