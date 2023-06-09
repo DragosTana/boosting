@@ -4,14 +4,16 @@ def simulatedData1(n = 10, seed = None):
     """
     This function simulates the data foloowing the example 3.10 of the Elements of Statistical Learning in the Boosting section.
     """
+    np.random.seed(seed)
     X = pow(np.random.randn(n, 10), 2) 
     Y = [1 if np.sum(X[i,:]) > 9.34 else -1 for i in range(n)]
     Y = np.array(Y)
     Y = Y.reshape((n,1))
     Y = Y.astype(int)
+    Y.flatten()
     return X, Y
 
-def simulatedData2(n = 100, seed = None, noise = 1):
+def simulatedData2(n: int = 100, noise: float = 1):
     """
     This function generates a simulated dataset for regression
     using the function 7 * sin(2x) * exp(-0.1x) + noise. (dumped sine wave)

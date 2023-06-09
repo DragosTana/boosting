@@ -36,7 +36,7 @@ class GradientBoostingRegressor(BaseEstimator, RegressorMixin):
         self.estimators = []
         self.verbose = verbose
         
-    def fit(self, X, y):
+    def fit(self, X: np.array, y: np.array) -> "GradientBoostingRegressor":
         self.estimators = []
         self.init_prediction = np.mean(y)
         #self.prediction = self.init_prediction * np.ones(len(X))
@@ -54,14 +54,14 @@ class GradientBoostingRegressor(BaseEstimator, RegressorMixin):
         
         return self
 
-    def predict(self, X):
+    def predict(self, X: np.array) -> np.array:
         prediction = self.init_prediction * np.ones(len(X))
         for estimator in self.estimators:
             prediction += self.learning_rate * estimator.predict(X) 
         
         return prediction
 
-    def _compute_residuals(self, y, prediction):
+    def _compute_residuals(self, y: np.array, prediction: np.array) -> np.array:
         if self.loss == 'ls':  # Least Squares Loss
             return y - prediction
         elif self.loss == 'lad':  # Least Absolute Deviation Loss
