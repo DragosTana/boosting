@@ -22,31 +22,26 @@ def main() -> None:
 def montecarlo():
     sim = 100
     tree = 501
-    score_noSub_noShrink, score_noSub_shrink, score_sub_noShrink, score_sub_shrink = [], [], [], []
+    shrink_error, no_shrink_error = [], []
     
     for i in tqdm.tqdm(range(sim)):
+        score_shrink, score_no_shrink = shrikageTest(trees=tree, shrinkage=0.1, n_samples=1000)
+        shrink_error.append(score_shrink)
+        no_shrink_error.append(score_no_shrink)
         
-        t_score_noSub_noShrink, t_score_noSub_shrink, t_score_sub_noShrink, t_score_sub_shrink = compareHyperparameter(trees=tree, subsampling=0.5, shrinkage=0.1, n_samples=500)
-        score_noSub_noShrink.append(t_score_noSub_noShrink)
-        score_noSub_shrink.append(t_score_noSub_shrink)
-        score_sub_noShrink.append(t_score_sub_noShrink)
-        score_sub_shrink.append(t_score_sub_shrink)
-        
-    score_noSub_noShrink = np.mean(score_noSub_noShrink, axis=0)
-    score_noSub_shrink = np.mean(score_noSub_shrink, axis=0)
-    score_sub_noShrink = np.mean(score_sub_noShrink, axis=0)
-    score_sub_shrink = np.mean(score_sub_shrink, axis=0)
+    shrink_error = np.array(shrink_error)
+    no_shrink_error = np.array(no_shrink_error)
     
     fig, ax = plt.subplots(1, 1, figsize=(10, 5))
-    ax.plot(range(1, tree), score_noSub_noShrink, label="No subsampling, no shrinkage", linewidth=2)
-    ax.plot(range(1, tree), score_noSub_shrink, label="No subsampling, shrinkage", linewidth=2)
-    ax.plot(range(1, tree), score_sub_noShrink, label="Subsampling, no shrinkage", linewidth=2)
-    ax.plot(range(1, tree), score_sub_shrink, label="Subsampling, shrinkage", linewidth=2)
-    
+    ax.plot(range(1, tree), np.mean(shrink_error, axis=0), label="Shrinkage at 0.1", linewidth=2)
+    ax.plot(range(1, tree), np.mean(no_shrink_error, axis=0), label="No shrinkage", linewidth=2)
     plt.xlabel("Boosting Iterations")
     plt.ylabel("Test Error")
     plt.legend()
-    plt.show() 
+    plt.show()
+    
+        
+
      
 def compareHyperparameter(trees: int = 1001, subsampling: float = 0.5, shrinkage: float = 0.1, n_samples: int = 500)-> None:
     """
@@ -432,6 +427,7 @@ def shrikageTest(trees: int = 1001, shrinkage: float = 0.1, n_samples: int = 100
     
     #X, Y = datasets.make_classification(n_samples = n_samples, n_features=10, n_informative = 6)
     X, Y = ms.simulatedData1(n = n_samples, seed = None)
+    Y = Y.flatten()
     x_train, x_test, y_train, y_test = train_test_split(X, Y, test_size=0.2)
     
     gb_shrink = GradientBoostingClassifier(n_estimators=t, learning_rate=shrinkage, max_depth=3, loss='exponential', verbose = False)
@@ -439,22 +435,23 @@ def shrikageTest(trees: int = 1001, shrinkage: float = 0.1, n_samples: int = 100
     
     gb_shrink.fit(x_train, y_train), gb_no_shrink.fit(x_train, y_train)
     
-    for i in tqdm.tqdm(range(1, t)):
+    for i in range(1, t):
         y_pred_shrink = np.array(list(gb_shrink.staged_predict(x_test))[i])
         y_pred_no_shrink = np.array(list(gb_no_shrink.staged_predict(x_test))[i])
         
         shrink_error.append(1 - accuracy_score(y_test, y_pred_shrink))
         no_shrink_error.append(1 - accuracy_score(y_test, y_pred_no_shrink))
         
-    fig, ax = plt.subplots(1, 1, figsize=(10, 5))
-    ax.plot(range(1, trees), shrink_error, label="Shrinkage at 0.1", linewidth=2)
-    ax.plot(range(1, trees), no_shrink_error, label="No shrinkage", linewidth=2)
-    ax.set_xlabel("Boosting Iterations")
-    ax.set_ylabel("Test Error")
-    ax.legend()
+    #fig, ax = plt.subplots(1, 1, figsize=(10, 5))
+    #ax.plot(range(1, trees), shrink_error, label="Shrinkage at 0.1", linewidth=2)
+    #ax.plot(range(1, trees), no_shrink_error, label="No shrinkage", linewidth=2)
+    #ax.set_xlabel("Boosting Iterations")
+    #ax.set_ylabel("Test Error")
+    #ax.legend()
+    #
+    #plt.show()
     
-    plt.show()
-    
+    return shrink_error, no_shrink_error
     
 main()
 
