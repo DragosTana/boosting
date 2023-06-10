@@ -1,4 +1,7 @@
 import numpy as np
+import pandas as pd
+import os
+from scipy.stats import ttest_ind
 
 def simulatedData1(n = 10, seed = None):
     """
@@ -56,7 +59,48 @@ def simulatedDataInteraction(n = 1000, seed = None, noise = 1, interaction = 2):
     Y = np.array(Y)
     return X, Y
 
+def tTest():
+    path = os.getcwd()
+    gb_scores = np.genfromtxt(path + "/gb_scores.csv", delimiter=",")
+    rf_scores = np.genfromtxt(path + "/rf_scores.csv", delimiter=",")
+    
+    accuracy_gb = gb_scores[:,0]
+    accuracy_rf = rf_scores[:,0]
+    
+    precision_gb = gb_scores[:,1]
+    precision_rf = rf_scores[:,1]
+ 
+    recall_gb = gb_scores[:,2]
+    recall_rf = rf_scores[:,2]
+    
+    
+    print("Accuracy test:")
+    test(accuracy_gb, accuracy_rf)
+    print("\nPrecision test:")
+    test(precision_gb, precision_rf)
+    print("\nRecall test:")
+    test(recall_gb, recall_rf)
+    
+def test(score_gb, score_rf):
+    """
+    This function performs a t-test to compare the performance of two models.
+    """
+    # Perform independent t-test
+    t_stat, p_value = ttest_ind(score_gb, score_rf)
+
+    # Compare p-value to significance level
+    alpha = 0.05  # Example significance level
+    if p_value < alpha:
+        print("There is a significant difference between the models.")
+        if np.mean(score_gb) > np.mean(score_rf):
+            print("The Gradient Boosting model performs better.")
+        else:
+            print("The Random Forest model performs better.")
+    else:
+        print("There is no significant difference between the models.")
+        
+    print("t-statistic: {0:.3f}, p-value: {1:.3f}".format(t_stat, p_value))
+          
+
 if __name__ == "__main__":
-    X, Y = simulatedDataInteraction(n = 10)
-    print(X)
-    print(Y)
+    tTest()
