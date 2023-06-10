@@ -20,12 +20,12 @@ def main() -> None:
     montecarlo()
     
 def montecarlo():
-    sim = 10
-    tree = 1001
+    sim = 5
+    tree = 501
     shrink_error, no_shrink_error = [], []
     
     for i in tqdm.tqdm(range(sim)):
-        score_shrink, score_no_shrink = shrikageTest(trees=tree, shrinkage=0.1, n_samples=500)
+        score_shrink, score_no_shrink = shrikageTest(trees=tree, shrinkage=0.1, n_samples=5000)
         shrink_error.append(score_shrink)
         no_shrink_error.append(score_no_shrink)
         
@@ -33,16 +33,13 @@ def montecarlo():
     no_shrink_error = np.array(no_shrink_error)
     
     fig, ax = plt.subplots(1, 1, figsize=(10, 5))
-    ax.plot(range(1, tree), np.mean(shrink_error, axis=0), label="Shrinkage at 0.1", linewidth=2)
-    ax.plot(range(1, tree), np.mean(no_shrink_error, axis=0), label="No shrinkage", linewidth=2)
+    ax.plot(range(0, tree), np.mean(shrink_error, axis=0), label="Shrinkage at 0.1", linewidth=2)
+    ax.plot(range(0, tree), np.mean(no_shrink_error, axis=0), label="No shrinkage", linewidth=2)
     plt.xlabel("Boosting Iterations")
     plt.ylabel("Test Error")
     plt.legend()
     plt.show()
     
-        
-
-     
 def compareHyperparameter(trees: int = 1001, subsampling: float = 0.5, shrinkage: float = 0.1, n_samples: int = 500, plot = False)-> None:
     """
     Function to compare the effect of the shrinkage and subsampling parameters on the performance of the 
@@ -427,27 +424,34 @@ def shrikageTest(trees: int = 1001, shrinkage: float = 0.1, n_samples: int = 100
     t = trees
     shrink_error, no_shrink_error = [], []
     
-    X, Y = datasets.make_classification(n_samples = n_samples, n_features=10, n_informative = 6)
+    #X, Y = datasets.make_classification(n_samples = n_samples, n_features=10, n_informative = 6)
     #X, Y = ms.simulatedData1(n = n_samples, seed = None)
+    X, Y = datasets.make_regression(n_samples = n_samples, n_features=10, n_informative = 6, noise=5)
     Y = Y.flatten()
     x_train, x_test, y_train, y_test = train_test_split(X, Y, test_size=0.2)
     
-    gb_shrink = GradientBoostingClassifier(n_estimators=t, learning_rate=shrinkage, max_depth=3, loss='exponential', verbose = False)
-    gb_no_shrink = GradientBoostingClassifier(n_estimators=t, learning_rate=1, max_depth=3, loss='exponential', verbose = False)
+    #gb_shrink = GradientBoostingClassifier(n_estimators=t, learning_rate=shrinkage, max_depth=3, loss='exponential', verbose = False)
+    #gb_no_shrink = GradientBoostingClassifier(n_estimators=t, learning_rate=1, max_depth=3, loss='exponential', verbose = False)
     
+    gb_shrink = GradientBoostingRegressor(n_estimators=t, learning_rate=shrinkage, max_depth=3, loss='squared_error', verbose = False)
+    gb_no_shrink = GradientBoostingRegressor(n_estimators=t, learning_rate=1, max_depth=3, loss='squared_error', verbose = False)
+
     gb_shrink.fit(x_train, y_train), gb_no_shrink.fit(x_train, y_train)
     
-    for i in range(1, t):
+    for i in range(0, t):
         y_pred_shrink = np.array(list(gb_shrink.staged_predict(x_test))[i])
         y_pred_no_shrink = np.array(list(gb_no_shrink.staged_predict(x_test))[i])
         
-        shrink_error.append(mean_absolute_error(y_test, y_pred_shrink))
-        no_shrink_error.append(mean_absolute_error(y_test, y_pred_no_shrink))
+        #shrink_error.append(mean_absolute_error(y_test, y_pred_shrink))
+        #no_shrink_error.append(mean_absolute_error(y_test, y_pred_no_shrink))
         
+        shrink_error.append(np.mean((y_test - y_pred_shrink)**2))
+        no_shrink_error.append(np.mean((y_test - y_pred_no_shrink)**2))
+                
     if plot:
         fig, ax = plt.subplots(1, 1, figsize=(10, 5))
-        ax.plot(range(1, trees), shrink_error, label="Shrinkage at 0.1", linewidth=2)
-        ax.plot(range(1, trees), no_shrink_error, label="No shrinkage", linewidth=2)
+        ax.plot(range(0, trees), shrink_error, label="Shrinkage at 0.1", linewidth=2)
+        ax.plot(range(0, trees), no_shrink_error, label="No shrinkage", linewidth=2)
         ax.set_xlabel("Boosting Iterations")
         ax.set_ylabel("Test Error")
         ax.legend()
