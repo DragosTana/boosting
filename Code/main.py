@@ -1,6 +1,6 @@
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import AdaBoostClassifier, GradientBoostingClassifier, GradientBoostingRegressor, RandomForestClassifier, RandomForestRegressor
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, mean_absolute_error, log_loss
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn import datasets
 from scipy.optimize import minimize_scalar
@@ -20,12 +20,12 @@ def main() -> None:
     montecarlo()
     
 def montecarlo():
-    sim = 100
-    tree = 501
+    sim = 10
+    tree = 1001
     shrink_error, no_shrink_error = [], []
     
     for i in tqdm.tqdm(range(sim)):
-        score_shrink, score_no_shrink = shrikageTest(trees=tree, shrinkage=0.1, n_samples=1000)
+        score_shrink, score_no_shrink = shrikageTest(trees=tree, shrinkage=0.1, n_samples=500)
         shrink_error.append(score_shrink)
         no_shrink_error.append(score_no_shrink)
         
@@ -43,7 +43,7 @@ def montecarlo():
         
 
      
-def compareHyperparameter(trees: int = 1001, subsampling: float = 0.5, shrinkage: float = 0.1, n_samples: int = 500)-> None:
+def compareHyperparameter(trees: int = 1001, subsampling: float = 0.5, shrinkage: float = 0.1, n_samples: int = 500, plot = False)-> None:
     """
     Function to compare the effect of the shrinkage and subsampling parameters on the performance of the 
     Gradient Boosting algorithm both in the case of classification and regression.
@@ -83,20 +83,21 @@ def compareHyperparameter(trees: int = 1001, subsampling: float = 0.5, shrinkage
         #score_sub_noShrink.append(np.mean((y_test - pred_sub_noShrink)**2))
         #score_sub_shrink.append(np.mean((y_test - pred_sub_shrink)**2))
         
-    #fig, ax = plt.subplots(1, 1, figsize=(10, 5))
-    #ax.plot(range(1, trees), score_noSub_noShrink, label="No subsampling, no shrinkage", linewidth=2)
-    #ax.plot(range(1, trees), score_noSub_shrink, label="No subsampling, shrinkage", linewidth=2)
-    #ax.plot(range(1, trees), score_sub_noShrink, label="Subsampling, no shrinkage", linewidth=2)
-    #ax.plot(range(1, trees), score_sub_shrink, label="Subsampling, shrinkage", linewidth=2)
-    #
-    #plt.xlabel("Boosting Iterations")
-    #plt.ylabel("Test Error")
-    #plt.legend()
-    #plt.show()
+    if plot:
+        fig, ax = plt.subplots(1, 1, figsize=(10, 5))
+        ax.plot(range(1, trees), score_noSub_noShrink, label="No subsampling, no shrinkage", linewidth=2)
+        ax.plot(range(1, trees), score_noSub_shrink, label="No subsampling, shrinkage", linewidth=2)
+        ax.plot(range(1, trees), score_sub_noShrink, label="Subsampling, no shrinkage", linewidth=2)
+        ax.plot(range(1, trees), score_sub_shrink, label="Subsampling, shrinkage", linewidth=2)
+
+        plt.xlabel("Boosting Iterations")
+        plt.ylabel("Test Error")
+        plt.legend()
+        plt.show()
     
     return score_noSub_noShrink, score_noSub_shrink, score_sub_noShrink, score_sub_shrink
     
-def SubsamplingTest(trees: int = 1001, subsampling: float = 0.5, n_samples: int = 1000) -> None:
+def SubsamplingTest(trees: int = 1001, subsampling: float = 0.5, n_samples: int = 1000, plot = False) -> None:
     """
     Function to test the effect of the subsampling parameter on the performance of the Gradient Boosting algorithm
     """
@@ -128,14 +129,15 @@ def SubsamplingTest(trees: int = 1001, subsampling: float = 0.5, n_samples: int 
         
         score_sub.append(1 - accuracy_score(y_test, pred_sub))
         score_no_sub.append(1 - accuracy_score(y_test, pred_no_sub))
-    
-    #fig, ax = plt.subplots(1, 1, figsize=(10, 5))
-    #ax.plot(range(1, trees), score_sub, label="Subsampling at " + str(subsampling), linewidth=2)
-    #ax.plot(range(1, trees), score_no_sub, label="No subsampling", linewidth=2)
-    #plt.xlabel("Boosting Iterations")
-    #plt.ylabel("Test Error")
-    #plt.legend()
-    #plt.show()
+        
+    if plot:
+        fig, ax = plt.subplots(1, 1, figsize=(10, 5))
+        ax.plot(range(1, trees), score_sub, label="Subsampling at " + str(subsampling), linewidth=2)
+        ax.plot(range(1, trees), score_no_sub, label="No subsampling", linewidth=2)
+        plt.xlabel("Boosting Iterations")
+        plt.ylabel("Test Error")
+        plt.legend()
+        plt.show()
         
     return score_sub, score_no_sub, time_sub, time_no_sub
         
@@ -417,7 +419,7 @@ def compareLoss():
     plt.show()
     
     
-def shrikageTest(trees: int = 1001, shrinkage: float = 0.1, n_samples: int = 1000) -> None:
+def shrikageTest(trees: int = 1001, shrinkage: float = 0.1, n_samples: int = 1000, plot=False) -> None:
     """
     Function to test the effect of the shrinkage parameter on the performance of the Gradient Boosting algorithm
     and the trade-off between the number of trees and the shrinkage parameter.
@@ -425,8 +427,8 @@ def shrikageTest(trees: int = 1001, shrinkage: float = 0.1, n_samples: int = 100
     t = trees
     shrink_error, no_shrink_error = [], []
     
-    #X, Y = datasets.make_classification(n_samples = n_samples, n_features=10, n_informative = 6)
-    X, Y = ms.simulatedData1(n = n_samples, seed = None)
+    X, Y = datasets.make_classification(n_samples = n_samples, n_features=10, n_informative = 6)
+    #X, Y = ms.simulatedData1(n = n_samples, seed = None)
     Y = Y.flatten()
     x_train, x_test, y_train, y_test = train_test_split(X, Y, test_size=0.2)
     
@@ -439,17 +441,18 @@ def shrikageTest(trees: int = 1001, shrinkage: float = 0.1, n_samples: int = 100
         y_pred_shrink = np.array(list(gb_shrink.staged_predict(x_test))[i])
         y_pred_no_shrink = np.array(list(gb_no_shrink.staged_predict(x_test))[i])
         
-        shrink_error.append(1 - accuracy_score(y_test, y_pred_shrink))
-        no_shrink_error.append(1 - accuracy_score(y_test, y_pred_no_shrink))
+        shrink_error.append(mean_absolute_error(y_test, y_pred_shrink))
+        no_shrink_error.append(mean_absolute_error(y_test, y_pred_no_shrink))
         
-    #fig, ax = plt.subplots(1, 1, figsize=(10, 5))
-    #ax.plot(range(1, trees), shrink_error, label="Shrinkage at 0.1", linewidth=2)
-    #ax.plot(range(1, trees), no_shrink_error, label="No shrinkage", linewidth=2)
-    #ax.set_xlabel("Boosting Iterations")
-    #ax.set_ylabel("Test Error")
-    #ax.legend()
-    #
-    #plt.show()
+    if plot:
+        fig, ax = plt.subplots(1, 1, figsize=(10, 5))
+        ax.plot(range(1, trees), shrink_error, label="Shrinkage at 0.1", linewidth=2)
+        ax.plot(range(1, trees), no_shrink_error, label="No shrinkage", linewidth=2)
+        ax.set_xlabel("Boosting Iterations")
+        ax.set_ylabel("Test Error")
+        ax.legend()
+
+        plt.show()
     
     return shrink_error, no_shrink_error
     
